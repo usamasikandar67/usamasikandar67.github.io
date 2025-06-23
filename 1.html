@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Usama Sikandar - AI Undergraduate & Full-stack Developer passionate about building innovative digital experiences">
+  <meta name="keywords" content="AI, Machine Learning, Full Stack Developer, Web Development, JavaScript, Python">
+  <meta name="author" content="Usama Sikandar">
+  
+  <title>Usama Sikandar • AI & Full‑stack Dev</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+</head>
+<body>
+  <div class="bg-animation"></div>
+  <aside class="sidebar" id="sidebar">
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark/light theme">
+      <i class="fas fa-moon" id="theme-icon"></i>
+    </button>
+    <div class="profile-section">
+      <div class="profile-image" aria-label="Profile picture">
+        <i class="fas fa-user"></i>
+      </div>
+      <h1>Usama Sikandar</h1>
+      <p class="subtitle">AI Undergraduate • Full‑stack Dev</p>
+      <div class="status-indicator">
+        <div class="status-dot"></div>
+        Available for opportunities
+      </div>
+    </div>
+    <div class="quick-stats">
+      <div class="stat-item">
+        <span class="stat-number" data-count="2">0</span>
+        <span class="stat-label">Years Exp</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number" data-count="15">0</span>
+        <span class="stat-label">Projects</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number" data-count="500">0</span>
+        <span class="stat-label">Commits</span>
+      </div>
+    </div>
+
+    <!-- Bio -->
+    <p class="bio">
+      Director at Zindagi Prize; Co‑Lead Social Ninjas GDG OC; VP Fast Trekking Club. 
+      Passionate about AI/ML and building innovative digital experiences that make a difference.
+    </p>
+    <nav>
+      <a href="#hero" class="nav-link active">
+        <i class="fas fa-home"></i> Home
+      </a>
+      <a href="#about" class="nav-link">
+        <i class="fas fa-user"></i> About
+      </a>
+      <a href="#experience" class="nav-link">
+        <i class="fas fa-briefcase"></i> Experience
+      </a>
+      <a href="#projects" class="nav-link">
+        <i class="fas fa-code"></i> Projects
+      </a>
+      <a href="#contact" class="nav-link">
+        <i class="fas fa-envelope"></i> Contact
+      </a>
+    </nav>
+
+    <!-- Social Links -->
+    <div class="socials">
+      <div class="socials-grid">
+        <a href="https://github.com/usamasikandar67" target="_blank" rel="noopener" aria-label="GitHub Profile">
+          <i class="fab fa-github"></i> GitHub
+        </a>
+        <a href="https://linkedin.com/in/usama-sikandar-ba22b42b1/" target="_blank" rel="noopener" aria-label="LinkedIn Profile">
+          <i class="fab fa-linkedin"></i> LinkedIn
+        </a>
+        <a href="https://www.instagram.com/usamahehe" target="_blank" rel="noopener" aria-label="Instagram Profile">
+          <i class="fab fa-instagram"></i> Instagram
+        </a>
+        <a href="mailto:usamasikandar58@gmail.com" aria-label="Send Email">
+          <i class="fas fa-envelope"></i> Email
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Mobile Menu Toggle -->
+  <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle mobile menu">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+  <main class="main">
+    <section id="hero" class="section hero">
+      <div class="hero-content">
+        <h1 class="hero-title">
+          Building the Future with
+          <span class="highlight">AI & Code</span>
+        </h1>
+        <p class="hero-description">
+          Passionate AI undergraduate and full-stack developer creating innovative digital experiences 
+          that bridge technology and human needs.
+        </p>
+        <div class="hero-actions">
+          <a href="#projects" class="cta-button primary">
+            <i class="fas fa-rocket"></i> View My Work
+          </a>
+          <a href="#contact" class="cta-button secondary">
+            <i class="fas fa-coffee"></i> Let's Chat
+          </a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="floating-elements">
+          <div class="element" data-speed="0.5"><i class="fab fa-js-square"></i></div>
+          <div class="element" data-speed="0.8"><i class="fab fa-python"></i></div>
+          <div class="element" data-speed="0.3"><i class="fab fa-react"></i></div>
+          <div class="element" data-speed="0.6"><i class="fas fa-brain"></i></div>
+          <div class="element" data-speed="0.4"><i class="fab fa-node-js"></i></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="section">
+      <h2>About Me</h2>
+      <div class="about-content">
+        <div class="about-text">
+          <p>
+            I'm Muhammad Usama Sikandar—an AI undergraduate with hands-on experience in AI/ML, 
+            full-stack development, and community leadership. I've directed digital growth at 
+            Zindagi Prize, co-led Team Social Ninjas at GDG OC, and organized outdoor events 
+            as VP of the Fast Trekking Club.
+          </p>
+          <p>
+            My passion lies at the intersection of design and development, creating experiences 
+            that not only look great but are meticulously built for performance and usability. 
+            I specialize in building accessible, pixel-perfect digital experiences for the web.
+          </p>
+        </div>
+        
+        <!-- Skills Grid -->
+        <div class="skills-grid">
+          <div class="skill-category">
+            <h4><i class="fas fa-brain"></i> AI & Machine Learning</h4>
+            <div class="skill-tags">
+              <span class="skill-tag">Python</span>
+              <span class="skill-tag">TensorFlow</span>
+              <span class="skill-tag">PyTorch</span>
+              <span class="skill-tag">Scikit-learn</span>
+              <span class="skill-tag">Computer Vision</span>
+              <span class="skill-tag">NLP</span>
+            </div>
+          </div>
+          
+          <div class="skill-category">
+            <h4><i class="fas fa-code"></i> Frontend Development</h4>
+            <div class="skill-tags">
+              <span class="skill-tag">React</span>
+              <span class="skill-tag">Next.js</span>
+              <span class="skill-tag">TypeScript</span>
+              <span class="skill-tag">Tailwind CSS</span>
+              <span class="skill-tag">Vue.js</span>
+              <span class="skill-tag">SASS</span>
+            </div>
+          </div>
+          
+          <div class="skill-category">
+            <h4><i class="fas fa-server"></i> Backend Development</h4>
+            <div class="skill-tags">
+              <span class="skill-tag">Node.js</span>
+              <span class="skill-tag">Express</span>
+              <span class="skill-tag">MongoDB</span>
+              <span class="skill-tag">PostgreSQL</span>
+              <span class="skill-tag">Redis</span>
+              <span class="skill-tag">GraphQL</span>
+            </div>
+          </div>
+          
+          <div class="skill-category">
+            <h4><i class="fas fa-tools"></i> Tools & Technologies</h4>
+            <div class="skill-tags">
+              <span class="skill-tag">Git</span>
+              <span class="skill-tag">Docker</span>
+              <span class="skill-tag">AWS</span>
+              <span class="skill-tag">Firebase</span>
+              <span class="skill-tag">Figma</span>
+              <span class="skill-tag">Linux</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Experience Section -->
+    <section id="experience" class="section">
+      <h2>Experience</h2>
+      <div class="experience-timeline">
+        <div class="experience-item">
+          <div class="experience-date">2024 — Present</div>
+          <div class="experience-content">
+            <h3>Director – Social Media & Marketing</h3>
+            <h4>Zindagi Prize</h4>
+            <p>
+              Led comprehensive digital strategy and outreach campaigns across multiple social platforms. 
+              Developed content strategies that increased engagement by 10% and built a community of 
+              over 100+ active followers. Implemented data-driven marketing approaches and coordinated 
+              cross-functional teams to deliver impactful campaigns.
+            </p>
+            <div class="achievement-tags">
+              <span class="achievement-tag">10% Engagement Growth</span>
+              <span class="achievement-tag">100+ Followers</span>
+              <span class="achievement-tag">Campaign Strategy</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="experience-item">
+          <div class="experience-date">september,2024-August,2025 — Present</div>
+          <div class="experience-content">
+            <h3>Co‑Lead – Social Ninjas</h3>
+            <h4>GDG OC (Google Developer Groups)</h4>
+            <p>
+              Organized and executed tech events and community workshops for 1,000+ participants. 
+              Built and maintained critical components for event management systems. Collaborated 
+              with cross-functional teams including developers, designers, and product managers to 
+              deliver seamless event experiences.
+            </p>
+            <div class="achievement-tags">
+              <span class="achievement-tag">500+ Participants</span>
+              <span class="achievement-tag">Event Management</span>
+              <span class="achievement-tag">Community Building</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="experience-item">
+          <div class="experience-date">2024-2025 — Present</div>
+          <div class="experience-content">
+            <h3>Vice President</h3>
+            <h4>Fast Trekking Club</h4>
+            <p>
+              Coordinated club logistics and led outdoor expeditions for university students. 
+              Managed event planning, safety protocols, and team coordination. Developed leadership 
+              skills while fostering a community of outdoor enthusiasts and adventure seekers.
+            </p>
+            <div class="achievement-tags">
+              <span class="achievement-tag">Leadership</span>
+              <span class="achievement-tag">Event Planning</span>
+              <span class="achievement-tag">Team Management</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects" class="section">
+      <h2>Featured Projects</h2>
+      <div class="project-filters">
+        <button class="filter-btn active" data-filter="all">All Projects</button>
+        <button class="filter-btn" data-filter="ai">AI/ML</button>
+        <button class="filter-btn" data-filter="web">Web Development</button>
+        <button class="filter-btn" data-filter="mobile">Mobile</button>
+      </div>
+      <div id="projects-grid" class="projects-grid">
+        <div class="loading">
+          <div class="loading-spinner"></div>
+          Loading projects...
+        </div>
+      </div>
+    </section>
+    <section id="contact" class="section">
+      <h2>Get In Touch</h2>
+      <div class="contact-grid">
+        <div class="contact-info">
+          <h3>Let's Build Something Amazing Together</h3>
+          <p>
+            I'm always interested in hearing about new opportunities and interesting projects. 
+            Whether you're looking to hire, collaborate, or just want to say hello, feel free to reach out!
+          </p>
+          
+          <div class="contact-methods">
+            <div class="contact-method">
+              <i class="fas fa-envelope"></i>
+              <div>
+                <h4>Email</h4>
+                <a href="mailto:usamasikandar58@gmail.com">usamasikandar58@gmail.com</a>
+              </div>
+            </div>
+            <div class="contact-method">
+              <i class="fab fa-linkedin"></i>
+              <div>
+                <h4>LinkedIn</h4>
+                <a href="https://linkedin.com/in/usama-sikandar-ba22b42b1/" target="_blank" rel="noopener">Connect with me</a>
+              </div>
+            </div>
+            <div class="contact-method">
+              <i class="fab fa-github"></i>
+              <div>
+                <h4>GitHub</h4>
+                <a href="https://github.com/usamasikandar67" target="_blank" rel="noopener">Check my code</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="contact-form">
+          <form id="contact-form">
+            <div class="form-group">
+              <label for="name">Name *</label>
+              <input type="text" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+              <label for="email">Email *</label>
+              <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+              <label for="subject">Subject *</label>
+              <input type="text" id="subject" name="subject" required>
+            </div>
+            <div class="form-group">
+              <label for="message">Message *</label>
+              <textarea id="message" name="message" rows="5" required></textarea>
+            </div>
+            <button type="submit" class="submit-btn">
+              <i class="fas fa-paper-plane"></i>
+              Send Message
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+  <button class="scroll-top" id="scroll-top" aria-label="Scroll to top">
+    <i class="fas fa-chevron-up"></i>
+  </button>
+  <script src="script.js"></script>
+</body>
+</html>
