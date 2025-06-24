@@ -1,3 +1,17 @@
+console.log('Portfolio script starting...');
+// Add a test alert to make sure script is running
+window.addEventListener('load', () => {
+  console.log('Window loaded, testing GitHub API...');
+  fetch('https://api.github.com/users/usamasikandar67/repos?sort=updated&per_page=6')
+    .then(response => response.json())
+    .then(data => {
+      console.log('GitHub API test successful:', data.length, 'repos found');
+    })
+    .catch(error => {
+      console.error('GitHub API test failed:', error);
+    });
+});
+
 class PortfolioManager {
   constructor() {
     this.config = {
@@ -21,18 +35,22 @@ class PortfolioManager {
     this.observers = new Map();
     this.init();
   }
-  //the portfolio
+
   async init() {
     try {
+      console.log('Initializing PortfolioManager...');
       this.setupEventListeners();
       this.initializeAnimations();
       this.setupTheme();
       this.setupKeyboardNavigation();
       this.setupSearchAndFilter();
-      await this.loadRepositories();
       this.setupPerformanceOptimizations();
       this.setupProgressIndicator();
       this.setupTooltips();
+      
+      // Load repositories after DOM is ready
+      console.log('Loading repositories...');
+      await this.loadRepositories();
     } catch (error) {
       this.handleError('Initialization failed', error);
     }
@@ -108,49 +126,62 @@ class PortfolioManager {
   // Easing function
   easeInOutCubic(t) {
     return t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
-  }
-
-  // Enhanced repository loading with retry logic
+  }  // Enhanced repository loading with retry logic
   async loadRepositories() {
+    console.log('Loading repositories...');
     if (this.state.isLoading) return;
     
     this.state.isLoading = true;
-    const repoList = document.getElementById('repo-list');
+    const projectsGrid = document.getElementById('projects-grid');
     
-    this.showLoadingState(repoList);
+    if (!projectsGrid) {
+      console.error('Projects grid element not found');
+      return;
+    }
+    
+    this.showLoadingState(projectsGrid);
     
     try {
+      console.log('Fetching repositories from GitHub...');
       const repos = await this.fetchRepositoriesWithRetry();
+      console.log('Fetched repos:', repos?.length || 0);
       this.state.repos = this.processRepositories(repos);
+      console.log('Processed repos:', this.state.repos?.length || 0);
       this.renderRepositories(this.state.repos);
       this.setupRepositoryFeatures();
     } catch (error) {
-      this.handleRepositoryError(repoList, error);
+      console.error('Error loading repositories:', error);
+      this.handleRepositoryError(projectsGrid, error);
     } finally {
       this.state.isLoading = false;
     }
   }
-
   // Fetch repositories with retry logic
   async fetchRepositoriesWithRetry(attempt = 1) {
     try {
+      console.log(`Attempting to fetch repositories (attempt ${attempt})`);
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
       
-      const response = await fetch(
-        `https://api.github.com/users/${this.config.username}/repos?sort=updated&per_page=100`,
-        { signal: controller.signal }
-      );
+      const url = `https://api.github.com/users/${this.config.username}/repos?sort=updated&per_page=100`;
+      console.log('Fetching from URL:', url);
+      
+      const response = await fetch(url, { signal: controller.signal });
       
       clearTimeout(timeoutId);
+      console.log('Response status:', response.status);
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       
-      return await response.json();
+      const data = await response.json();
+      console.log('Successfully fetched repositories:', data.length);
+      return data;
     } catch (error) {
+      console.error(`Fetch attempt ${attempt} failed:`, error);
       if (attempt < this.config.retryAttempts) {
+        console.log(`Retrying in ${this.config.retryDelay * attempt}ms...`);
         await this.delay(this.config.retryDelay * attempt);
         return this.fetchRepositoriesWithRetry(attempt + 1);
       }
@@ -177,16 +208,15 @@ class PortfolioManager {
         return b.lastUpdated - a.lastUpdated;
       });
   }
-
   // Enhanced repository rendering with search and filter
   renderRepositories(repos) {
-    const repoList = document.getElementById('repo-list');
+    const projectsGrid = document.getElementById('projects-grid');
     const filteredRepos = this.filterRepositories(repos);
     
-    repoList.innerHTML = '';
+    projectsGrid.innerHTML = '';
     
     if (filteredRepos.length === 0) {
-      this.showNoResults(repoList);
+      this.showNoResults(projectsGrid);
       return;
     }
     
@@ -196,19 +226,19 @@ class PortfolioManager {
       fragment.appendChild(repoCard);
     });
     
-    repoList.appendChild(fragment);
+    projectsGrid.appendChild(fragment);
     this.animateRepoCards();
   }
 
   // Filter repositories based on search and language
   filterRepositories(repos) {
     return repos.filter(repo => {
-      const matchesSearch = !this.state.searchQuery || 
-        repo.displayName.toLowerCase().includes(this.state.searchQuery.toLowerCase()) ||
+      const matchesSearch = this.state.searchQuery === '' || 
+        repo.name.toLowerCase().includes(this.state.searchQuery.toLowerCase()) ||
         repo.description.toLowerCase().includes(this.state.searchQuery.toLowerCase());
       
-      const matchesLanguage = this.state.selectedLanguage === 'all' || 
-        repo.language.toLowerCase() === this.state.selectedLanguage.toLowerCase();
+      const matchesLanguage = this.state.selectedLanguage === 'all' ||
+        repo.language?.toLowerCase() === this.state.selectedLanguage.toLowerCase();
       
       return matchesSearch && matchesLanguage;
     });
@@ -217,147 +247,367 @@ class PortfolioManager {
   // Create enhanced repository card
   createEnhancedRepoCard(repo, index) {
     const card = document.createElement('div');
-    card.className = 'repo-card';
-    card.style.animationDelay = `${index * 100}ms`;
-    card.setAttribute('data-repo-id', repo.id);
+    card.className = 'project-card';
+    card.setAttribute('data-category', this.getProjectCategory(repo));
+    card.style.animationDelay = `${index * 0.1}s`;
     
-    const lastUpdated = this.formatDate(repo.lastUpdated);
-    const topicsHtml = repo.topics.length > 0 ? 
-      `<div class="repo-topics">${repo.topics.slice(0, 3).map(topic => 
-        `<span class="topic-tag">${topic}</span>`
-      ).join('')}</div>` : '';
+    const languageColor = this.getLanguageColor(repo.language);
+    const topics = repo.topics?.slice(0, 3) || [];
     
     card.innerHTML = `
-      <div class="repo-header">
-        <h3>
-          <a href="${repo.html_url}" target="_blank" rel="noopener" class="repo-link">
-            ${repo.displayName}
-            <svg class="external-link-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-              <polyline points="15,3 21,3 21,9"></polyline>
-              <line x1="10" y1="14" x2="21" y2="3"></line>
-            </svg>
-          </a>
-        </h3>
-        <button class="repo-favorite" data-repo-id="${repo.id}" title="Add to favorites">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"></polygon>
-          </svg>
-        </button>
+      <div class="project-image">
+        <div class="project-icon">
+          <i class="${this.getProjectIcon(repo)}"></i>
+        </div>
+        <div class="project-stats">
+          <span class="stat"><i class="fas fa-star"></i> ${repo.stars}</span>
+          <span class="stat"><i class="fas fa-code-branch"></i> ${repo.forks}</span>
+        </div>
       </div>
-      <p class="repo-description">${repo.description}</p>
-      ${topicsHtml}
-      <div class="repo-stats">
-        <span class="stat-item" title="Stars">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-            <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"></polygon>
-          </svg>
-          ${repo.stars}
-        </span>
-        <span class="stat-item" title="Forks">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="18" r="3"></circle>
-            <circle cx="6" cy="6" r="3"></circle>
-            <circle cx="18" cy="6" r="3"></circle>
-            <path d="M18 9v1a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9"></path>
-            <path d="M12 12v3"></path>
-          </svg>
-          ${repo.forks}
-        </span>
-        <span class="stat-item" title="Primary Language">
-          <span class="language-dot" style="background-color: ${this.getLanguageColor(repo.language)}"></span>
-          ${repo.language}
-        </span>
-        <span class="stat-item updated-date" title="Last updated">
-          Updated ${lastUpdated}
-        </span>
+      <div class="project-content">
+        <h3 class="project-title">${repo.displayName}</h3>
+        <p class="project-description">${repo.description}</p>
+        <div class="project-tech">
+          ${repo.language ? `<span class="tech-tag" style="background-color: ${languageColor}20; color: ${languageColor};">${repo.language}</span>` : ''}
+          ${topics.map(topic => `<span class="tech-tag">${topic}</span>`).join('')}
+        </div>
+        <div class="project-links">
+          <a href="${repo.html_url}" target="_blank" rel="noopener" class="project-link">
+            <i class="fab fa-github"></i> Code
+          </a>
+          ${repo.homepage ? `<a href="${repo.homepage}" target="_blank" rel="noopener" class="project-link">
+            <i class="fas fa-external-link-alt"></i> Live Demo
+          </a>` : ''}
+        </div>
       </div>
     `;
-    
-    // Add click tracking
-    card.addEventListener('click', () => this.trackRepoClick(repo));
     
     return card;
   }
 
+  // Get project category based on repository
+  getProjectCategory(repo) {
+    const language = repo.language?.toLowerCase() || '';
+    const topics = repo.topics?.join(' ').toLowerCase() || '';
+    const description = repo.description?.toLowerCase() || '';
+    
+    if (topics.includes('ai') || topics.includes('ml') || topics.includes('machine-learning') || 
+        description.includes('ai') || description.includes('machine learning')) {
+      return 'ai';
+    } else if (language === 'swift' || language === 'kotlin' || language === 'java' || 
+               topics.includes('android') || topics.includes('ios')) {
+      return 'mobile';
+    } else {
+      return 'web';
+    }
+  }
+
+  // Get project icon based on language and topics
+  getProjectIcon(repo) {
+    const language = repo.language?.toLowerCase() || '';
+    const topics = repo.topics?.join(' ').toLowerCase() || '';
+    
+    if (topics.includes('ai') || topics.includes('ml')) return 'fas fa-brain';
+    if (language === 'javascript') return 'fab fa-js-square';
+    if (language === 'python') return 'fab fa-python';
+    if (language === 'react' || topics.includes('react')) return 'fab fa-react';
+    if (language === 'vue' || topics.includes('vue')) return 'fab fa-vuejs';
+    if (language === 'swift') return 'fab fa-swift';
+    if (language === 'kotlin' || language === 'java') return 'fab fa-android';
+    return 'fas fa-code';
+  }
+
+  // Get language color
+  getLanguageColor(language) {
+    const colors = {
+      'JavaScript': '#f1e05a',
+      'Python': '#3572a5',
+      'TypeScript': '#2b7489',
+      'HTML': '#e34c26',
+      'CSS': '#563d7c',
+      'Vue': '#2c3e50',
+      'React': '#61dafb',
+      'Java': '#b07219',
+      'Swift': '#fa7343',
+      'Kotlin': '#7f52ff'
+    };
+    return colors[language] || '#6b7280';
+  }
+
   // Setup search and filter functionality
   setupSearchAndFilter() {
-    const searchInput = document.getElementById('repo-search');
-    const languageFilter = document.getElementById('language-filter');
-    
-    if (searchInput) {
-      searchInput.addEventListener('input', this.debounce((e) => {
-        this.state.searchQuery = e.target.value;
-        this.renderRepositories(this.state.repos);
-      }, 300));
-    }
-    
-    if (languageFilter) {
-      languageFilter.addEventListener('change', (e) => {
-        this.state.selectedLanguage = e.target.value;
-        this.renderRepositories(this.state.repos);
-      });
-    }
-  }
-
-  // Setup repository-specific features
-  setupRepositoryFeatures() {
-    // Favorite functionality
-    document.querySelectorAll('.repo-favorite').forEach(btn => {
+    // Project filters
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    filterButtons.forEach(btn => {
       btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.toggleFavorite(btn.dataset.repoId);
+        filterButtons.forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        
+        const filter = e.target.getAttribute('data-filter');
+        this.filterProjects(filter);
       });
     });
+  }
+
+  // Filter projects by category
+  filterProjects(category) {
+    const projects = document.querySelectorAll('.project-card');
     
-    // Update language filter options
-    this.updateLanguageFilter();
+    projects.forEach(project => {
+      const projectCategory = project.getAttribute('data-category');
+      
+      if (category === 'all' || projectCategory === category) {
+        project.style.display = 'block';
+        project.style.opacity = '0';
+        project.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+          project.style.opacity = '1';
+          project.style.transform = 'translateY(0)';
+        }, 100);
+      } else {
+        project.style.opacity = '0';
+        project.style.transform = 'translateY(-20px)';
+        setTimeout(() => {
+          project.style.display = 'none';
+        }, 300);
+      }
+    });
   }
 
-  // Theme management
-  setupTheme() {
-    const themeToggle = document.getElementById('theme-toggle');
-    if (themeToggle) {
-      themeToggle.addEventListener('click', this.toggleTheme.bind(this));
-    }
-    this.applyTheme(this.state.currentTheme);
+  // Format repository name for display
+  formatRepoName(name) {
+    return name
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   }
 
-  toggleTheme() {
-    this.state.currentTheme = this.state.currentTheme === 'dark' ? 'light' : 'dark';
-    this.applyTheme(this.state.currentTheme);
-    this.storeTheme(this.state.currentTheme);
+  // Show no results message
+  showNoResults(container) {
+    container.innerHTML = `
+      <div class="no-results">
+        <i class="fas fa-search"></i>
+        <h3>No projects found</h3>
+        <p>Try adjusting your search or filter criteria.</p>
+      </div>
+    `;
   }
 
-  applyTheme(theme) {
-    document.documentElement.setAttribute('data-theme', theme);
-    const themeIcon = document.querySelector('#theme-toggle .theme-icon');
-    if (themeIcon) {
-      themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
-    }
+  // Animate repository cards
+  animateRepoCards() {
+    const cards = document.querySelectorAll('.project-card');
+    cards.forEach((card, index) => {
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(30px)';
+      
+      setTimeout(() => {
+        card.style.transition = 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+      }, index * 100);
+    });
   }
-
-  // Setup progress indicator
-  setupProgressIndicator() {
-    const progressBar = document.createElement('div');
-    progressBar.className = 'scroll-progress';
-    progressBar.innerHTML = '<div class="scroll-progress-bar"></div>';
-    document.body.appendChild(progressBar);
+  // Enhanced repository rendering with search and filter
+  renderRepositories(repos) {
+    const projectsGrid = document.getElementById('projects-grid');
+    const filteredRepos = this.filterRepositories(repos);
     
-    window.addEventListener('scroll', this.throttle(this.updateScrollProgress.bind(this), 16));
+    projectsGrid.innerHTML = '';
+    
+    if (filteredRepos.length === 0) {
+      this.showNoResults(projectsGrid);
+      return;
+    }
+    
+    const fragment = document.createDocumentFragment();
+    filteredRepos.slice(0, this.config.maxRepos).forEach((repo, index) => {
+      const repoCard = this.createEnhancedRepoCard(repo, index);
+      fragment.appendChild(repoCard);
+    });
+    
+    projectsGrid.appendChild(fragment);
+    this.animateRepoCards();
   }
 
-  updateScrollProgress() {
-    const scrolled = window.pageYOffset;
-    const maxHeight = document.documentElement.scrollHeight - window.innerHeight;
-    const progress = (scrolled / maxHeight) * 100;
+  // Filter repositories based on search and language
+  filterRepositories(repos) {
+    return repos.filter(repo => {
+      const matchesSearch = this.state.searchQuery === '' || 
+        repo.name.toLowerCase().includes(this.state.searchQuery.toLowerCase()) ||
+        repo.description.toLowerCase().includes(this.state.searchQuery.toLowerCase());
+      
+      const matchesLanguage = this.state.selectedLanguage === 'all' ||
+        repo.language?.toLowerCase() === this.state.selectedLanguage.toLowerCase();
+      
+      return matchesSearch && matchesLanguage;
+    });
+  }
+
+  // Create enhanced repository card
+  createEnhancedRepoCard(repo, index) {
+    const card = document.createElement('div');
+    card.className = 'project-card';
+    card.setAttribute('data-category', this.getProjectCategory(repo));
+    card.style.animationDelay = `${index * 0.1}s`;
     
-    const progressBar = document.querySelector('.scroll-progress-bar');
-    if (progressBar) {
-      progressBar.style.width = `${Math.min(progress, 100)}%`;
+    const languageColor = this.getLanguageColor(repo.language);
+    const topics = repo.topics?.slice(0, 3) || [];
+    
+    card.innerHTML = `
+      <div class="project-image">
+        <div class="project-icon">
+          <i class="${this.getProjectIcon(repo)}"></i>
+        </div>
+        <div class="project-stats">
+          <span class="stat"><i class="fas fa-star"></i> ${repo.stars}</span>
+          <span class="stat"><i class="fas fa-code-branch"></i> ${repo.forks}</span>
+        </div>
+      </div>
+      <div class="project-content">
+        <h3 class="project-title">${repo.displayName}</h3>
+        <p class="project-description">${repo.description}</p>
+        <div class="project-tech">
+          ${repo.language ? `<span class="tech-tag" style="background-color: ${languageColor}20; color: ${languageColor};">${repo.language}</span>` : ''}
+          ${topics.map(topic => `<span class="tech-tag">${topic}</span>`).join('')}
+        </div>
+        <div class="project-links">
+          <a href="${repo.html_url}" target="_blank" rel="noopener" class="project-link">
+            <i class="fab fa-github"></i> Code
+          </a>
+          ${repo.homepage ? `<a href="${repo.homepage}" target="_blank" rel="noopener" class="project-link">
+            <i class="fas fa-external-link-alt"></i> Live Demo
+          </a>` : ''}
+        </div>
+      </div>
+    `;
+    
+    return card;
+  }
+
+  // Get project category based on repository
+  getProjectCategory(repo) {
+    const language = repo.language?.toLowerCase() || '';
+    const topics = repo.topics?.join(' ').toLowerCase() || '';
+    const description = repo.description?.toLowerCase() || '';
+    
+    if (topics.includes('ai') || topics.includes('ml') || topics.includes('machine-learning') || 
+        description.includes('ai') || description.includes('machine learning')) {
+      return 'ai';
+    } else if (language === 'swift' || language === 'kotlin' || language === 'java' || 
+               topics.includes('android') || topics.includes('ios')) {
+      return 'mobile';
+    } else {
+      return 'web';
     }
   }
 
+  // Get project icon based on language and topics
+  getProjectIcon(repo) {
+    const language = repo.language?.toLowerCase() || '';
+    const topics = repo.topics?.join(' ').toLowerCase() || '';
+    
+    if (topics.includes('ai') || topics.includes('ml')) return 'fas fa-brain';
+    if (language === 'javascript') return 'fab fa-js-square';
+    if (language === 'python') return 'fab fa-python';
+    if (language === 'react' || topics.includes('react')) return 'fab fa-react';
+    if (language === 'vue' || topics.includes('vue')) return 'fab fa-vuejs';
+    if (language === 'swift') return 'fab fa-swift';
+    if (language === 'kotlin' || language === 'java') return 'fab fa-android';
+    return 'fas fa-code';
+  }
+
+  // Get language color
+  getLanguageColor(language) {
+    const colors = {
+      'JavaScript': '#f1e05a',
+      'Python': '#3572a5',
+      'TypeScript': '#2b7489',
+      'HTML': '#e34c26',
+      'CSS': '#563d7c',
+      'Vue': '#2c3e50',
+      'React': '#61dafb',
+      'Java': '#b07219',
+      'Swift': '#fa7343',
+      'Kotlin': '#7f52ff'
+    };
+    return colors[language] || '#6b7280';
+  }
+
+  // Setup search and filter functionality
+  setupSearchAndFilter() {
+    // Project filters
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    filterButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        filterButtons.forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        
+        const filter = e.target.getAttribute('data-filter');
+        this.filterProjects(filter);
+      });
+    });
+  }
+
+  // Filter projects by category
+  filterProjects(category) {
+    const projects = document.querySelectorAll('.project-card');
+    
+    projects.forEach(project => {
+      const projectCategory = project.getAttribute('data-category');
+      
+      if (category === 'all' || projectCategory === category) {
+        project.style.display = 'block';
+        project.style.opacity = '0';
+        project.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+          project.style.opacity = '1';
+          project.style.transform = 'translateY(0)';
+        }, 100);
+      } else {
+        project.style.opacity = '0';
+        project.style.transform = 'translateY(-20px)';
+        setTimeout(() => {
+          project.style.display = 'none';
+        }, 300);
+      }
+    });
+  }
+
+  // Format repository name for display
+  formatRepoName(name) {
+    return name
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  }
+
+  // Show no results message
+  showNoResults(container) {
+    container.innerHTML = `
+      <div class="no-results">
+        <i class="fas fa-search"></i>
+        <h3>No projects found</h3>
+        <p>Try adjusting your search or filter criteria.</p>
+      </div>
+    `;
+  }
+
+  // Animate repository cards
+  animateRepoCards() {
+    const cards = document.querySelectorAll('.project-card');
+    cards.forEach((card, index) => {
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(30px)';
+      
+      setTimeout(() => {
+        card.style.transition = 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+      }, index * 100);
+    });
+  }
   // Enhanced animations
   initializeAnimations() {
     this.setupIntersectionObserver();
@@ -443,100 +693,247 @@ class PortfolioManager {
       }
     }
   }
-  throttle(func, limit) {
-    let inThrottle;
-    return function(...args) {
-      if (!inThrottle) {
-        func.apply(this, args);
-        inThrottle = true;
-        setTimeout(() => inThrottle = false, limit);
-      }
-    };
+  // Setup repository features after loading
+  setupRepositoryFeatures() {
+    // Add any additional features like tooltips, click handlers, etc.
+    this.setupProjectCardInteractions();
   }
-  debounce(func, wait) {
-    let timeout;
-    return function(...args) {
-      clearTimeout(timeout);
-      timeout =setTimeout(() =>func.apply(this, args), wait);
-    };
+
+  // Setup project card interactions
+  setupProjectCardInteractions() {
+    const projectCards = document.querySelectorAll('.project-card');
+    
+    projectCards.forEach(card => {
+      // Add hover effects
+      card.addEventListener('mouseenter', () => {
+        card.style.transform = 'translateY(-5px)';
+      });
+      
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = 'translateY(0)';
+      });
+    });
   }
+
+  // Utility functions
   delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
-  formatRepoName(name) {
-    return name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+  throttle(func, limit) {
+    let inThrottle;
+    return function() {
+      const args = arguments;
+      const context = this;
+      if (!inThrottle) {
+        func.apply(context, args);
+        inThrottle = true;
+        setTimeout(() => inThrottle = false, limit);
+      }
+    }
   }
-  formatDate(date) {
-    const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    if (diffDays === 1) return 'yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
-    if (diffDays < 365) return `${Math.ceil(diffDays / 30)} months ago`;
-    return `${Math.ceil(diffDays / 365)} years ago`;
-  }
-  getLanguageColor(language) {
-    const colors = {
-      JavaScript: '#f1e05a',
-      Python: '#3572A5',
-      HTML: '#e34c26',
-      CSS: '#563d7c',
-      TypeScript: '#2b7489',
-      Java: '#b07219',
-      C: '#555555',
-      'C++': '#f34b7d',
-      PHP: '#4F5D95',
-      Ruby: '#701516',
-      Go: '#00ADD8',
-      Rust: '#dea584',
-      Swift: '#ffac45',
-      Kotlin: '#F18E33'
+
+  debounce(func, wait, immediate) {
+    let timeout;
+    return function() {
+      const context = this;
+      const args = arguments;
+      const later = function() {
+        timeout = null;
+        if (!immediate) func.apply(context, args);
+      };
+      const callNow = immediate && !timeout;
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+      if (callNow) func.apply(context, args);
     };
-    return colors[language] || '#8b949e';
   }
-  handleError(message, error) {
-    console.error(`${message}:`, error);
-    this.showNotification(`${message}. Please try again later.`, 'error');
+
+  // Handle visibility change for performance
+  handleVisibilityChange() {
+    if (document.hidden) {
+      // Pause animations or reduce activity when tab is not visible
+      document.querySelectorAll('.floating-elements .element').forEach(element => {
+        element.style.animationPlayState = 'paused';
+      });
+    } else {
+      // Resume animations when tab becomes visible
+      document.querySelectorAll('.floating-elements .element').forEach(element => {
+        element.style.animationPlayState = 'running';
+      });
+    }
   }
-  showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.textContent = message;
-    document.body.appendChild(notification);
+
+  // Handle online/offline status
+  handleOnlineStatus() {
+    if (navigator.onLine) {
+      this.showNotification('Connection restored', 'success');
+      // Retry loading repositories if they failed to load
+      if (this.state.repos.length === 0) {
+        this.loadRepositories();
+      }
+    } else {
+      this.showNotification('Connection lost. Some features may not work.', 'warning');
+    }
+  }
+
+  // Handle resize events
+  handleResize() {
+    // Update layouts that depend on viewport size
+    this.updateMobileLayout();
+  }
+
+  // Update mobile layout
+  updateMobileLayout() {
+    const isMobile = window.innerWidth <= 768;
+    const sidebar = document.getElementById('sidebar');
+    
+    if (isMobile) {
+      sidebar.classList.add('mobile');
+    } else {
+      sidebar.classList.remove('mobile');
+    }
+  }
+
+  // Announce navigation for accessibility
+  announceNavigation(target) {
+    const announcement = document.createElement('div');
+    announcement.setAttribute('aria-live', 'polite');
+    announcement.setAttribute('aria-atomic', 'true');
+    announcement.className = 'sr-only';
+    announcement.textContent = `Navigated to ${target.querySelector('h2')?.textContent || 'section'}`;
+    
+    document.body.appendChild(announcement);
     setTimeout(() => {
-      notification.remove();
-    }, 5000);
+      document.body.removeChild(announcement);
+    }, 1000);
   }
-  getStoredTheme() {
-    return localStorage.getItem('portfolio-theme') || 'dark';
+
+  // Setup theme functionality
+  setupTheme() {
+    const themeToggle = document.querySelector('.theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+    
+    // Apply stored theme
+    document.documentElement.setAttribute('data-theme', this.state.currentTheme);
+    this.updateThemeIcon(themeIcon, this.state.currentTheme);
+    
+    // Theme toggle handler
+    if (themeToggle) {
+      themeToggle.addEventListener('click', () => {
+        const newTheme = this.state.currentTheme === 'dark' ? 'light' : 'dark';
+        this.state.currentTheme = newTheme;
+        document.documentElement.setAttribute('data-theme', newTheme);
+        this.storeTheme(newTheme);
+        this.updateThemeIcon(themeIcon, newTheme);
+      });
+    }
   }
-  storeTheme(theme) {
-    localStorage.setItem('portfolio-theme', theme);
+
+  // Update theme icon
+  updateThemeIcon(icon, theme) {
+    if (icon) {
+      icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+    }
   }
-  handleScroll() {
-    this.updateActiveNavigation();
-    this.updateScrollProgress();
-  }
-  updateActiveNavigation() {
-    const sections = document.querySelectorAll('.section');
-    const navLinks = document.querySelectorAll('.sidebar nav a');
-    let currentSection = '';
-    sections.forEach(section => {
-      const rect = section.getBoundingClientRect();
-      if (rect.top <= 100 && rect.bottom >= 100) {
-        currentSection = section.id;
+
+  // Setup keyboard navigation
+  setupKeyboardNavigation() {
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab') {
+        document.body.classList.add('keyboard-nav');
       }
     });
+
+    document.addEventListener('mousedown', () => {
+      document.body.classList.remove('keyboard-nav');
+    });
+  }
+
+  // Setup performance optimizations
+  setupPerformanceOptimizations() {
+    // Lazy load images
+    if ('IntersectionObserver' in window) {
+      const imageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const img = entry.target;
+            img.src = img.dataset.src;
+            img.classList.remove('lazy');
+            observer.unobserve(img);
+          }
+        });
+      });
+
+      document.querySelectorAll('img[data-src]').forEach(img => {
+        imageObserver.observe(img);
+      });
+    }
+  }
+
+  // Setup progress indicator
+  setupProgressIndicator() {
+    const progressBar = document.createElement('div');
+    progressBar.className = 'scroll-progress-bar';
+    document.body.appendChild(progressBar);
+  }
+
+  // Setup tooltips
+  setupTooltips() {
+    const tooltipElements = document.querySelectorAll('[data-tooltip]');
     
-    navLinks.forEach(link => {
-      link.classList.remove('active');
-      if (link.getAttribute('href') === `#${currentSection}`) {
-        link.classList.add('active');
+    tooltipElements.forEach(element => {
+      element.addEventListener('mouseenter', (e) => {
+        const tooltip = document.createElement('div');
+        tooltip.className = 'tooltip';
+        tooltip.textContent = e.target.getAttribute('data-tooltip');
+        document.body.appendChild(tooltip);
+        
+        const rect = e.target.getBoundingClientRect();
+        tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
+        tooltip.style.top = rect.top - tooltip.offsetHeight - 8 + 'px';
+      });
+      
+      element.addEventListener('mouseleave', () => {
+        const tooltip = document.querySelector('.tooltip');
+        if (tooltip) {
+          tooltip.remove();
+        }
+      });
+    });
+  }
+
+  // Setup parallax effects
+  setupParallaxEffects() {
+    const floatingElements = document.querySelectorAll('.floating-elements .element');
+    
+    window.addEventListener('scroll', () => {
+      const scrolled = window.pageYOffset;
+      const parallax = scrolled * 0.5;
+      
+      floatingElements.forEach((element, index) => {
+        const speed = parseFloat(element.getAttribute('data-speed')) || 0.5;
+        const yPos = -(scrolled * speed);
+        element.style.transform = `translateY(${yPos}px) rotate(${scrolled * 0.1 + index * 45}deg)`;
+      });
+    });
+  }
+
+  // Setup mouse effects
+  setupMouseEffects() {
+    document.addEventListener('mousemove', (e) => {
+      const cursor = document.querySelector('.custom-cursor');
+      if (cursor) {
+        cursor.style.left = e.clientX + 'px';
+        cursor.style.top = e.clientY + 'px';
       }
     });
-    
-    this.state.activeSection = currentSection;
+  }
+
+  // Enhanced error handling
+  handleError(message, error) {
+    console.error(message, error);
+    this.showNotification(`${message}. Please try again later.`, 'error');
   }
   showLoadingState(container) {
     container.innerHTML = `
@@ -577,3 +974,115 @@ window.addEventListener('beforeunload', () => {
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = PortfolioManager;
 }
+
+// Global functions for HTML event handlers
+function toggleTheme() {
+  if (portfolioManager) {
+    const themeToggle = document.querySelector('.theme-toggle');
+    themeToggle.click();
+  }
+}
+
+// Mobile menu toggle
+document.addEventListener('DOMContentLoaded', () => {
+  const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+  const sidebar = document.getElementById('sidebar');
+  
+  if (mobileMenuToggle && sidebar) {
+    mobileMenuToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('active');
+      mobileMenuToggle.classList.toggle('active');
+    });
+  }
+
+  // Contact form handling
+  const contactForm = document.getElementById('contact-form');
+  if (contactForm) {
+    contactForm.addEventListener('submit', handleContactForm);
+  }
+
+  // Scroll to top button
+  const scrollTopBtn = document.getElementById('scroll-top');
+  if (scrollTopBtn) {
+    scrollTopBtn.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // Show/hide scroll to top button
+    window.addEventListener('scroll', () => {
+      if (window.pageYOffset > 300) {
+        scrollTopBtn.classList.add('visible');
+      } else {
+        scrollTopBtn.classList.remove('visible');
+      }
+    });
+  }
+});
+
+// Handle contact form submission
+async function handleContactForm(e) {
+  e.preventDefault();
+  
+  const form = e.target;
+  const formData = new FormData(form);
+  const submitBtn = form.querySelector('.submit-btn');
+  
+  // Disable submit button
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+  
+  try {
+    // In a real application, you would send this to your backend
+    // For now, we'll simulate a successful submission
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Show success message
+    portfolioManager.showNotification('Message sent successfully!', 'success');
+    form.reset();
+    
+  } catch (error) {
+    portfolioManager.showNotification('Failed to send message. Please try again.', 'error');
+  } finally {
+    // Re-enable submit button
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Message';
+  }
+}
+
+// Animate stats counter
+function animateCounter(element, target, duration = 2000) {
+  let start = 0;
+  const increment = target / (duration / 16);
+  
+  const counter = () => {
+    start += increment;
+    element.textContent = Math.floor(start);
+    
+    if (start < target) {
+      requestAnimationFrame(counter);
+    } else {
+      element.textContent = target;
+    }
+  };
+  
+  counter();
+}
+
+// Initialize stats animation when they come into view
+document.addEventListener('DOMContentLoaded', () => {
+  const statNumbers = document.querySelectorAll('.stat-number');
+  
+  const statsObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const target = parseInt(entry.target.getAttribute('data-count'));
+        animateCounter(entry.target, target);
+        statsObserver.unobserve(entry.target);
+      }
+    });
+  });
+  
+  statNumbers.forEach(stat => {
+    statsObserver.observe(stat);
+  });
+});

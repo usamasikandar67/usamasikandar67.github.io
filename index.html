@@ -21,8 +21,8 @@
       <i class="fas fa-moon" id="theme-icon"></i>
     </button>
     <div class="profile-section">
-      <div class="profile-image" aria-label="Profile picture">
-        <i class="fas fa-user"></i>
+      <div class="profile-image" aria-label="Profile picture" style="width:160px;height:160px;">
+        <img src="https://media.licdn.com/dms/image/v2/D4E03AQGwtYDGe9zX_Q/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1728412157503?e=1756339200&v=beta&t=Q2j9xMtU4KQW1e0i8NglJy7_ve8TFsWRf-yeOl6G220" alt="Profile Photo of Usama Sikandar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />
       </div>
       <h1>Usama Sikandar</h1>
       <p class="subtitle">AI Undergraduate • Full‑stack Dev</p>
@@ -96,25 +96,27 @@
   </button>
   <main class="main">
     <section id="hero" class="section hero">
-      <div class="hero-content">
-        <h1 class="hero-title">
-          Building the Future with
-          <span class="highlight">AI & Code</span>
-        </h1>
-        <p class="hero-description">
-          Passionate AI undergraduate and full-stack developer creating innovative digital experiences 
-          that bridge technology and human needs.
-        </p>
-        <div class="hero-actions">
-          <a href="#projects" class="cta-button primary">
-            <i class="fas fa-rocket"></i> View My Work
-          </a>
-          <a href="#contact" class="cta-button secondary">
-            <i class="fas fa-coffee"></i> Let's Chat
-          </a>
+      <div class="hero-center-wrapper">
+        <div class="hero-content">
+          <h1 class="hero-title">
+            Building the Future with
+            <span class="highlight">AI & Code</span>
+          </h1>
+          <p class="hero-description">
+            Passionate AI undergraduate and full-stack developer creating innovative digital experiences 
+            that bridge technology and human needs.
+          </p>
+          <div class="hero-actions">
+            <a href="#projects" class="cta-button primary">
+              <i class="fas fa-rocket"></i> View My Work
+            </a>
+            <a href="#contact" class="cta-button secondary">
+              <i class="fas fa-coffee"></i> Let's Chat
+            </a>
+          </div>
         </div>
       </div>
-      <div class="hero-visual">
+      <div class="hero-visual-bg">
         <div class="floating-elements">
           <div class="element" data-speed="0.5"><i class="fab fa-js-square"></i></div>
           <div class="element" data-speed="0.8"><i class="fab fa-python"></i></div>
@@ -268,12 +270,36 @@
         <button class="filter-btn" data-filter="mobile">Mobile</button>
       </div>
       <div id="projects-grid" class="projects-grid">
-        <div class="loading">
-          <div class="loading-spinner"></div>
-          Loading projects...
-        </div>
+        <!-- Projects will be loaded here dynamically -->
       </div>
     </section>
+    <script>
+      // Fetch and populate GitHub projects
+      document.addEventListener('DOMContentLoaded', async () => {
+        try {
+          const response = await fetch('https://api.github.com/users/usamasikandar67/repos?sort=updated&per_page=6');
+          const repos = await response.json();
+          const projectsGrid = document.getElementById('projects-grid');
+          if (projectsGrid) {
+            projectsGrid.innerHTML = repos.slice(0, 6).map(repo => `
+              <div class="project-card" style="border: 1px solid #ccc; padding: 20px; margin: 10px; border-radius: 8px;">
+                <h3>${repo.name}</h3>
+                <p>${repo.description || 'No description'}</p>
+                <p>⭐ ${repo.stargazers_count} | 🍴 ${repo.forks_count}</p>
+                <p>Language: ${repo.language || 'N/A'}</p>
+                <a href="${repo.html_url}" target="_blank">View on GitHub</a>
+              </div>
+            `).join('');
+          }
+        } catch (error) {
+          const projectsGrid = document.getElementById('projects-grid');
+          if (projectsGrid) {
+            projectsGrid.innerHTML = `<div style='color:red;'>❌ Failed to load projects: ${error.message}</div>`;
+          }
+        }
+      });
+    </script>
+    
     <section id="contact" class="section">
       <h2>Get In Touch</h2>
       <div class="contact-grid">
