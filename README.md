@@ -86,4 +86,4 @@ A modern, responsive portfolio website showcasing AI/ML projects and full-stack 
 
 ---
 
-**Built with ❤️ by Usama Sikandar** | AI Undergraduate & Full-stack Developer
+**Built with ❤ by Usama Sikandar** | AI Undergraduate & Full-stack Developer
